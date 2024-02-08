@@ -1,0 +1,9 @@
+beautifulsoup4
+datasets
+langchain
+pinecone-client
+requests
+tiktoken
+tqdm
+jq
+faiss-cpu
