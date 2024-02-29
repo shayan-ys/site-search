@@ -1,9 +1,14 @@
 beautifulsoup4
 datasets
 langchain
+langchain-community
+langchain-openai
+langchain-pinecone
 pinecone-client
+openai
 requests
 tiktoken
 tqdm
+unidecode
 jq
 faiss-cpu

@@ -1,42 +1,32 @@
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.output_parsers import StrOutputParser
-from langchain_community.llms import Ollama
-from langchain_community.embeddings import OllamaEmbeddings
-from langchain_community.vectorstores import FAISS
-from langchain.chains.combine_documents import create_stuff_documents_chain
-from langchain.chains import create_retrieval_chain
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+import os
+from langchain.schema import (
+    SystemMessage,
+    HumanMessage,
+    AIMessage
+)
+from langchain_openai import ChatOpenAI
 
 from loader import load_docs
 
-llm = Ollama(model="tinyllama")
-embeddings = OllamaEmbeddings()
-output_parser = StrOutputParser()
-
 docs = load_docs()
-text_splitter = RecursiveCharacterTextSplitter()
-documents = text_splitter.split_documents(docs)
-vector = FAISS.from_documents(documents, embeddings)
 
-prompt = ChatPromptTemplate.from_template("""Answer the following question based only on the provided context:
+os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
 
-<context>
-{context}
-</context>
-
-Question: {input}""")
-
-document_chain = create_stuff_documents_chain(llm, prompt)
-
-retriever = vector.as_retriever(
-    # search_type="similarity_score_threshold", search_kwargs={"score_threshold": 0.5, "k": 3}
+chat = ChatOpenAI(
+    openai_api_key=os.environ["OPENAI_API_KEY"],
+    model='gpt-3.5-turbo'
 )
-# docs = retriever.get_relevant_documents("What is the price of sharpening a 7 inch western style knife?")
-# from pprint import pprint
-# pprint(docs)
-# exit(0)
 
-retrieval_chain = create_retrieval_chain(retriever, document_chain)
+def augment_prompt(query: str):
+    # get top 3 results from knowledge base
+    results = vectorstore.similarity_search(query, k=3)
+    # get the text from the results
+    source_knowledge = "\n".join([x.page_content for x in results])
+    # feed into an augmented prompt
+    augmented_prompt = f"""Using the contexts below, answer the query.
 
-response = retrieval_chain.invoke({"input": "What is the price of sharpening a 7 inch western style knife?"})
-print(response["answer"])
+    Contexts:
+    {source_knowledge}
+
+    Query: {query}"""
+    return augmented_prompt

@@ -4,7 +4,6 @@ FILE_PATH='./site_data.json'
 
 # Define the metadata extraction function.
 def metadata_func(record: dict, metadata: dict) -> dict:
-
     metadata["source"] = record.get("url")
     metadata["hyperlinks"] = record.get("hyperlinks")
 
